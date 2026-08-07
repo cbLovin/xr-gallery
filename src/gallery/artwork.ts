@@ -8,9 +8,18 @@ export interface ArtworkConfig {
   description: string
   type: 'artwork'
   colors: [number, number]
-  x: number
+  wall?: 'back' | 'left' | 'right'
+  x?: number
+  y?: number
+  z?: number
   image?: string
 }
+
+export const GALLERY = {
+  W: 18,
+  H: 5,
+  D: 12,
+} as const
 
 export interface SculptureConfig {
   id: string
@@ -83,7 +92,29 @@ export async function createArtwork(config: ArtworkConfig): Promise<THREE.Group>
   art.userData = { artwork: true, config }
 
   group.add(frame, art)
+  placeWallArtwork(group, config)
   return group
+}
+
+function placeWallArtwork(group: THREE.Group, config: ArtworkConfig): void {
+  const { W, D } = GALLERY
+  const depth = 0.05
+  const y = config.y ?? 1.85
+  switch (config.wall ?? 'back') {
+    case 'left':
+      group.position.set(-W / 2 + depth, y, config.z ?? 0)
+      group.rotation.y = Math.PI / 2
+      break
+    case 'right':
+      group.position.set(W / 2 - depth, y, config.z ?? 0)
+      group.rotation.y = -Math.PI / 2
+      break
+    case 'back':
+    default:
+      group.position.set(config.x ?? 0, y, -D / 2 + depth)
+      group.rotation.y = 0
+      group.lookAt(config.x ?? 0, y, 0)
+  }
 }
 
 export async function mountSculpture(

@@ -3,46 +3,101 @@
     "id": "placeholder-1",
     "title": "ARTWORK 01",
     "artist": "Placeholder",
-    "description": "Placeholder piece. Replace with a real artifact when available.",
+    "description": "Back wall, west end.",
     "type": "artwork",
     "colors": [0, 50],
-    "x": -6
+    "x": -6,
+    "wall": "back"
   },
   {
     "id": "placeholder-2",
     "title": "ARTWORK 02",
     "artist": "Placeholder",
-    "description": "Placeholder piece. Replace with a real artifact when available.",
+    "description": "Back wall, center-left.",
     "type": "artwork",
     "colors": [130, 180],
-    "x": -3.6
+    "x": -3.6,
+    "wall": "back"
   },
   {
     "id": "placeholder-3",
     "title": "ARTWORK 03",
     "artist": "Placeholder",
-    "description": "Placeholder piece. Replace with a real artifact when available.",
+    "description": "Back wall, center.",
     "type": "artwork",
     "colors": [205, 255],
-    "x": -1.2
+    "x": -1.2,
+    "wall": "back"
   },
   {
     "id": "placeholder-4",
     "title": "ARTWORK 04",
     "artist": "Placeholder",
-    "description": "Placeholder piece. Replace with a real artifact when available.",
+    "description": "Back wall, center-right.",
     "type": "artwork",
     "colors": [285, 330],
-    "x": 1.2
+    "x": 1.2,
+    "wall": "back"
   },
   {
     "id": "placeholder-5",
     "title": "ARTWORK 05",
     "artist": "Placeholder",
-    "description": "Placeholder piece. Replace with a real artifact when available.",
+    "description": "Back wall, right end.",
     "type": "artwork",
     "colors": [10, 95],
-    "x": 3.6
+    "x": 3.6,
+    "wall": "back"
+  },
+  {
+    "id": "placeholder-6",
+    "title": "ARTWORK 06",
+    "artist": "Placeholder",
+    "description": "Left wall, east end.",
+    "type": "artwork",
+    "colors": [45, 120],
+    "z": -4,
+    "wall": "left"
+  },
+  {
+    "id": "placeholder-7",
+    "title": "ARTWORK 07",
+    "artist": "Placeholder",
+    "description": "Left wall, center.",
+    "type": "artwork",
+    "colors": [160, 215],
+    "z": 0,
+    "wall": "left"
+  },
+  {
+    "id": "placeholder-8",
+    "title": "ARTWORK 08",
+    "artist": "Placeholder",
+    "description": "Left wall, back end.",
+    "type": "artwork",
+    "colors": [275, 335],
+    "z": 4,
+    "wall": "left"
+  },
+  {
+    "id": "placeholder-9",
+    "title": "ARTWORK 09",
+    "artist": "Placeholder",
+    "description": "Right wall, east end.",
+    "type": "artwork",
+    "colors": [200, 250],
+    "z": -2,
+    "wall": "right"
+  },
+  {
+    "id": "placeholder-10",
+    "title": "ARTWORK 10",
+    "artist": "Placeholder",
+    "description": "Right wall, wide end.",
+    "type": "artwork",
+    "colors": [20, 80],
+    "z": 3,
+    "wall": "right"
   },
   {
     "id": "core",
@@ -51,7 +106,7 @@
     "description": "Demo sculpture loaded from a GLB file (public/artwork/core.glb).",
     "type": "sculpture",
     "model": "/artwork/core.glb",
-    "x": 0,
+    "x": -2.6,
     "scale": 1.3
   }
 ]
