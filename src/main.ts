@@ -2,9 +2,9 @@ import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import sceneConfig from './data/artworks.json'
-import { createArtwork, type ArtworkConfig } from './gallery/artwork.ts'
+import { createArtwork, mountSculpture, type GalleryItem } from './gallery/artwork.ts'
 
-const artworks = sceneConfig as unknown as ArtworkConfig[]
+const items = sceneConfig as unknown as GalleryItem[]
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -28,8 +28,8 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 controls.target.set(0, 1.75, 0)
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x303036, 0.9))
-const sun = new THREE.DirectionalLight(0xffffff, 1.2)
+scene.add(new THREE.HemisphereLight(0xffffff, 0x3f3f4a, 1.15))
+const sun = new THREE.DirectionalLight(0xffffff, 1.6)
 sun.position.set(5, 8, 4)
 sun.castShadow = true
 sun.shadow.mapSize.set(2048, 2048)
@@ -61,14 +61,21 @@ addWall(H, H, -W / 2, H / 2, 0, Math.PI / 2)
 addWall(H, H, W / 2, H / 2, 0, -Math.PI / 2)
 
 const hangerMat = new THREE.MeshStandardMaterial({ color: 0x3a3a44, roughness: 0.6 })
-for (const artwork of artworks) {
-  const group = createArtwork(artwork)
-  group.position.set(artwork.x, 1.85, -D / 2 + 0.05)
-  group.lookAt(0, 1.85, 0)
-  const hanger = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.04), hangerMat)
-  hanger.position.set(artwork.x, 2.75, -D / 2 + 0.02)
-  scene.add(group, hanger)
+async function mountItems() {
+  for (const item of items) {
+    if (item.type === 'artwork') {
+      const group = await createArtwork(item)
+      group.position.set(item.x, 1.85, -D / 2 + 0.05)
+      group.lookAt(0, 1.85, 0)
+      const hanger = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.04), hangerMat)
+      hanger.position.set(item.x, 2.75, -D / 2 + 0.02)
+      scene.add(group, hanger)
+    } else {
+      await mountSculpture(scene, item)
+    }
+  }
 }
+void mountItems()
 
 const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
@@ -80,14 +87,14 @@ renderer.domElement.addEventListener('pointerdown', (e) => {
   const hits = raycaster.intersectObjects(scene.children, true)
   const hit = hits.find((h) => h.object.userData.artwork)
   if (hit) {
-    const cfg = hit.object.userData.config as ArtworkConfig
+    const cfg = hit.object.userData.config as GalleryItem
     showInfo(cfg)
   } else {
     hideInfo()
   }
 })
 
-function showInfo(cfg: ArtworkConfig) {
+function showInfo(cfg: GalleryItem) {
   const card = document.getElementById('info')!
   card.querySelector<HTMLElement>('.info-title')!.textContent = cfg.title
   card.querySelector<HTMLElement>('.info-artist')!.textContent = cfg.artist
