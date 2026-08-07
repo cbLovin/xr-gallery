@@ -79,24 +79,34 @@
     "z": 4,
     "wall": "left"
   },
-  {
+{
     "id": "placeholder-9",
     "title": "ARTWORK 09",
     "artist": "Placeholder",
     "description": "Right wall, east end.",
     "type": "artwork",
-    "colors": [200, 250],
-    "z": -2,
+    "colors": [45, 120],
+    "z": -4,
     "wall": "right"
   },
   {
     "id": "placeholder-10",
     "title": "ARTWORK 10",
     "artist": "Placeholder",
+    "description": "Right wall, center.",
+    "type": "artwork",
+    "colors": [160, 215],
+    "z": 0,
+    "wall": "right"
+  },
+  {
+    "id": "placeholder-11",
+    "title": "ARTWORK 11",
+    "artist": "Placeholder",
     "description": "Right wall, west end.",
     "type": "artwork",
-    "colors": [20, 80],
-    "z": 3,
+    "colors": [275, 335],
+    "z": 4,
     "wall": "right"
   }
 ]

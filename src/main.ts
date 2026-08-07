@@ -46,13 +46,18 @@ renderer.xr.addEventListener('sessionend', () => {
 
 const { W, H, D } = GALLERY
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x3f3f4a, 1.15))
-const sun = new THREE.DirectionalLight(0xffffff, 1.6)
+scene.add(new THREE.HemisphereLight(0xffffff, 0x4a4a55, 1.25))
+scene.add(new THREE.AmbientLight(0xffffff, 0.35))
+const sun = new THREE.DirectionalLight(0xffffff, 1.2)
 sun.position.set(5, 8, 4)
 sun.castShadow = true
 sun.shadow.mapSize.set(2048, 2048)
 sun.shadow.camera.far = 50
 scene.add(sun)
+const fill = new THREE.DirectionalLight(0xffffff, 1.2)
+fill.position.set(-5, 8, -4)
+fill.castShadow = false
+scene.add(fill)
 
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(W, D),
