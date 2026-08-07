@@ -64,7 +64,8 @@ export function createInfoCard(): {
   const material = new THREE.MeshBasicMaterial({
     transparent: true,
     opacity: 0,
-    depthTest: false,
+    depthTest: true,
+    depthWrite: false,
   })
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.9, 1.45), material)
 
@@ -95,7 +96,7 @@ export function createInfoCard(): {
         mesh.position.lerp(target, 0.12)
         mesh.lookAt(lookTarget)
       }
-      fade(visible ? 0.08 : -0.08)
+      fade(visible ? 0.25 : -0.25)
     },
   }
 }

@@ -93,20 +93,10 @@
     "id": "placeholder-10",
     "title": "ARTWORK 10",
     "artist": "Placeholder",
-    "description": "Right wall, wide end.",
+    "description": "Right wall, west end.",
     "type": "artwork",
     "colors": [20, 80],
     "z": 3,
     "wall": "right"
-  },
-  {
-    "id": "core",
-    "title": "CORE",
-    "artist": "EchoSphere",
-    "description": "Demo sculpture loaded from a GLB file (public/artwork/core.glb).",
-    "type": "sculpture",
-    "model": "/artwork/core.glb",
-    "x": -2.6,
-    "scale": 1.3
   }
 ]

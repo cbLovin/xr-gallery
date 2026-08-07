@@ -34,7 +34,7 @@ const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 controls.target.set(0, 1.75, 0)
 controls.maxPolarAngle = Math.PI / 2 - 0.05
-controls.minDistance = 1.5
+controls.minDistance = 0.8
 controls.maxDistance = 30
 
 renderer.xr.addEventListener('sessionstart', () => {
@@ -110,22 +110,7 @@ scene.add(infoCard.mesh)
 const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
 const from = new THREE.Vector3()
-const target = new THREE.Vector3()
-
-function selectAt(origin: THREE.Vector3, direction: THREE.Vector3) {
-  raycaster.set(origin, direction)
-  raycaster.far = 40
-  const hits = raycaster.intersectObjects(scene.children, true)
-  const hit = hits.find((h) => h.object.userData.artwork)
-  if (hit) {
-    const cfg = hit.object.userData.config as GalleryItem
-    const spot = hit.point.clone().addScaledVector(normalOf(hit), 0.6)
-    spot.y += 1.1
-    infoCard.show(cfg, spot)
-  } else {
-    infoCard.hide()
-  }
-}
+const direction = new THREE.Vector3()
 
 function normalOf(hit: THREE.Intersection): THREE.Vector3 {
   const n = hit.face!.normal.clone()
@@ -133,18 +118,22 @@ function normalOf(hit: THREE.Intersection): THREE.Vector3 {
   return n
 }
 
+function placeCard(cfg: GalleryItem, hit: THREE.Intersection) {
+  const spot = hit.point.clone().addScaledVector(normalOf(hit), 0.5)
+  spot.y += 1.0
+  infoCard.show(cfg, spot)
+}
+
 renderer.domElement.addEventListener('pointerdown', (e) => {
   if ((renderer.xr as unknown as { isPresenting: boolean }).isPresenting) return
   pointer.x = (e.clientX / window.innerWidth) * 2 - 1
   pointer.y = -(e.clientY / window.innerHeight) * 2 + 1
   raycaster.setFromCamera(pointer, camera)
-  const hits = raycaster.intersectObjects(scene.children, true)
-  const hit = hits.find((h) => h.object.userData.artwork)
+  const hit = raycaster
+    .intersectObjects(scene.children, true)
+    .find((h) => h.object.userData.artwork)
   if (hit) {
-    const cfg = hit.object.userData.config as GalleryItem
-    const spot = hit.point.clone().addScaledVector(normalOf(hit), 0.5)
-    spot.y += 1.1
-    infoCard.show(cfg, spot)
+    placeCard(hit.object.userData.config as GalleryItem, hit)
   } else {
     infoCard.hide()
   }
@@ -155,8 +144,16 @@ function initControllers() {
     const controller = renderer.xr.getController(handedness)
     controller.addEventListener('select', () => {
       controller.getWorldPosition(from)
-      controller.getWorldDirection(target)
-      selectAt(from, target)
+      controller.getWorldDirection(direction)
+      raycaster.set(from, direction)
+      const hit = raycaster
+        .intersectObjects(scene.children, true)
+        .find((h) => h.object.userData.artwork)
+      if (hit) {
+        placeCard(hit.object.userData.config as GalleryItem, hit)
+      } else {
+        infoCard.hide()
+      }
     })
     const laser = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, -0.02), new THREE.Vector3(0, 0, -3)]),
@@ -218,7 +215,11 @@ window.addEventListener('resize', () => {
 const viewPos = new THREE.Vector3()
 renderer.setAnimationLoop(() => {
   if (controls.enabled) controls.update()
-  renderer.xr.getCamera().getWorldPosition(viewPos)
+  if ((renderer.xr as unknown as { isPresenting: boolean }).isPresenting) {
+    renderer.xr.getCamera().getWorldPosition(viewPos)
+  } else {
+    camera.getWorldPosition(viewPos)
+  }
   infoCard.lookAt(viewPos)
   renderer.render(scene, camera)
 })
