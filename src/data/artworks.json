@@ -1,0 +1,56 @@
+[
+  {
+    "id": "echosphere",
+    "title": "ECHOSPHERE",
+    "artist": "EchoSphere Collective",
+    "description": "The origin piece — an orb of resonance at the center of the gallery.",
+    "type": "artwork",
+    "colors": [210, 270],
+    "x": -6
+  },
+  {
+    "id": "deep-field",
+    "title": "DEEP FIELD",
+    "artist": "S. Yamasaki",
+    "description": "A study in depth and quiet gravity.",
+    "type": "artwork",
+    "colors": [160, 200],
+    "x": -3.6
+  },
+  {
+    "id": "tide",
+    "title": "TIDE",
+    "artist": "L. Moreau",
+    "description": "Movement captured in slow color.",
+    "type": "artwork",
+    "colors": [190, 230],
+    "x": -1.2
+  },
+  {
+    "id": "prism",
+    "title": "PRISM",
+    "artist": "J. Okafor",
+    "description": "Light split into its parts.",
+    "type": "artwork",
+    "colors": [280, 320],
+    "x": 1.2
+  },
+  {
+    "id": "void",
+    "title": "VOID",
+    "artist": "A. Nilsson",
+    "description": "The gallery's quietest room.",
+    "type": "artwork",
+    "colors": [260, 310],
+    "x": 3.6
+  },
+  {
+    "id": "aurora",
+    "title": "AURORA",
+    "artist": "K. Petrova",
+    "description": "Skylight drawn in wavelengths.",
+    "type": "artwork",
+    "colors": [180, 220],
+    "x": 6
+  }
+]
