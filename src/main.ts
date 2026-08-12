@@ -260,6 +260,9 @@ const cameraGoal = new THREE.Vector3()
 const lookGoal = new THREE.Vector3()
 const focus = { active: false, pos: new THREE.Vector3(), look: new THREE.Vector3() }
 const tour = { active: false, index: 0, waiting: false, timer: 0 }
+const homePos = new THREE.Vector3(0, 2.15, 7.99)
+const homeLook = new THREE.Vector3(0, 1.75, 0)
+let homeCaptured = false
 let autoRotateSetting = false
 createSettingsUI({
   scene,
@@ -343,6 +346,7 @@ function startTour() {
   tour.waiting = false
   tour.timer = 0
   tools.setTourActive(true)
+  controls.autoRotate = false
   while (tour.index < items.length) {
     const item = items[tour.index]
     tour.index++
@@ -378,7 +382,13 @@ function endTour() {
   tour.active = false
   tour.waiting = false
   tools.setTourActive(false)
-  if (!focus.active && autoRotateSetting) controls.autoRotate = true
+  infoCard.hide()
+  cameraGoal.copy(homePos)
+  lookGoal.copy(homeLook)
+  focus.pos.copy(homePos)
+  focus.look.copy(homeLook)
+  focus.active = true
+  controls.autoRotate = false
 }
 
 function takePhoto() {
@@ -489,6 +499,12 @@ const viewPos = new THREE.Vector3()
 renderer.setAnimationLoop(() => {
   const delta = clock.getDelta()
 
+  if (!homeCaptured) {
+    homePos.copy(camera.position)
+    homeLook.copy(controls.target)
+    homeCaptured = true
+  }
+
   if ((renderer.xr as unknown as { isPresenting: boolean }).isPresenting) {
     hovered.clear()
     for (const controller of controllers) {
@@ -510,7 +526,10 @@ renderer.setAnimationLoop(() => {
   if (focus.active) {
     camera.position.lerp(focus.pos, 0.06)
     controls.target.lerp(focus.look, 0.06)
-    if (camera.position.distanceTo(focus.pos) < 0.1) focus.active = false
+    if (camera.position.distanceTo(focus.pos) < 0.1) {
+      focus.active = false
+      if (!tour.active && autoRotateSetting) controls.autoRotate = true
+    }
   }
   if (tour.active && !focus.active) {
     tour.waiting = true
