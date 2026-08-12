@@ -261,10 +261,6 @@ button.vr {
       color: #8a8794;
     }
 
-    &:hover {
-      background: rgba(65, 65, 80, 0.8);
-    }
-
     &.active {
       background: rgba(90, 110, 200, 0.25);
       color: #fff;
