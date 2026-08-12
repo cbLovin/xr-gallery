@@ -172,5 +172,8 @@ export function applyTheme(scene: THREE.Scene, t: GalleryTheme, targets: ThemeTa
       const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial
       mat.color.set(t.frame)
     }
+    if (o.userData.glow) {
+      ;((o as THREE.Mesh).material as THREE.MeshBasicMaterial).color.set(t.accent)
+    }
   })
 }

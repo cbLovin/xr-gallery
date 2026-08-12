@@ -31,12 +31,13 @@ export function createSettingsUI(opts: {
 
   const gear = document.createElement('button')
   gear.id = 'settings-gear'
+  gear.className = 'ui'
   gear.title = 'Settings'
   gear.innerHTML = GEAR_SVG
 
   const panel = document.createElement('div')
   panel.id = 'settings-panel'
-  panel.className = 'hidden'
+  panel.className = 'hidden ui'
 
   const title = document.createElement('div')
   title.className = 'panel-title'

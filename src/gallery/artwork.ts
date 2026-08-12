@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { addGlow } from './glow.ts'
 
 export interface ArtworkConfig {
   id: string
@@ -46,8 +47,8 @@ export function makeCanvasTexture(title: string, from: number, to: number): THRE
   canvas.height = 640
   const ctx = canvas.getContext('2d')!
   const grad = ctx.createLinearGradient(0, 0, 0, canvas.height)
-  grad.addColorStop(0, `hsl(${from} 90% 58%)`)
-  grad.addColorStop(1, `hsl(${to} 90% 68%)`)
+  grad.addColorStop(0, `hsl(${from} 92% 44%)`)
+  grad.addColorStop(1, `hsl(${to} 92% 54%)`)
   ctx.fillStyle = grad
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.fillStyle = 'rgba(255,255,255,0.92)'
@@ -87,11 +88,18 @@ export async function createArtwork(config: ArtworkConfig): Promise<THREE.Group>
 
   const art = new THREE.Mesh(
     new THREE.PlaneGeometry(1.2, 1.5),
-    new THREE.MeshStandardMaterial({ map: texture, emissive: 0x111122, emissiveMap: texture }),
+    new THREE.MeshStandardMaterial({
+      map: texture,
+      emissive: 0xffffff,
+      emissiveIntensity: 0.55,
+      emissiveMap: texture,
+    }),
   )
+  art.position.z = 0.05
   art.userData = { artwork: true, config }
 
   group.add(frame, art)
+  addGlow(group)
   placeWallArtwork(group, config)
   return group
 }
