@@ -6,7 +6,7 @@
     "description": "Back wall, west end.",
     "type": "artwork",
     "colors": [0, 50],
-    "x": -6,
+    "x": -4.8,
     "wall": "back"
   },
   {
@@ -16,7 +16,7 @@
     "description": "Back wall, center-left.",
     "type": "artwork",
     "colors": [130, 180],
-    "x": -3.6,
+    "x": -2.4,
     "wall": "back"
   },
   {
@@ -26,7 +26,7 @@
     "description": "Back wall, center.",
     "type": "artwork",
     "colors": [205, 255],
-    "x": -1.2,
+    "x": 0,
     "wall": "back"
   },
   {
@@ -36,7 +36,7 @@
     "description": "Back wall, center-right.",
     "type": "artwork",
     "colors": [285, 330],
-    "x": 1.2,
+    "x": 2.4,
     "wall": "back"
   },
   {
@@ -46,7 +46,7 @@
     "description": "Back wall, right end.",
     "type": "artwork",
     "colors": [10, 95],
-    "x": 3.6,
+    "x": 4.8,
     "wall": "back"
   },
   {
