@@ -47,7 +47,7 @@ camera.position.set(0, 1.8, 8)
 const controls = new OrbitControls(camera, renderer.domElement)
 controls.enableDamping = true
 controls.target.set(0, 1.75, 0)
-controls.maxPolarAngle = Math.PI / 2 - 0.05
+controls.maxPolarAngle = Math.PI / 2 + 0.09
 controls.minDistance = 0.8
 controls.maxDistance = 30
 
@@ -323,10 +323,17 @@ if (vrButton) document.body.appendChild(vrButton)
 
 let tools: ToolUI
 
-function startFocus(group: THREE.Group, item: GalleryItem) {
+function viewFor(group: THREE.Group, item: GalleryItem): { pos: THREE.Vector3; look: THREE.Vector3 } {
   const n = wallNormal(item)
-  cameraGoal.copy(group.position).addScaledVector(n, 2.4).setY(group.position.y)
-  lookGoal.copy(group.position)
+  const pos = group.position.clone().addScaledVector(n, 3.2).setY(group.position.y + 0.35)
+  const look = group.position.clone().setY(group.position.y + 0.6)
+  return { pos, look }
+}
+
+function startFocus(group: THREE.Group, item: GalleryItem) {
+  const v = viewFor(group, item)
+  cameraGoal.copy(v.pos)
+  lookGoal.copy(v.look)
   focus.pos.copy(cameraGoal)
   focus.look.copy(lookGoal)
   focus.active = true
@@ -334,9 +341,9 @@ function startFocus(group: THREE.Group, item: GalleryItem) {
 }
 
 function jumpTo(group: THREE.Group, item: GalleryItem) {
-  const n = wallNormal(item)
-  camera.position.copy(group.position).addScaledVector(n, 2.4).setY(group.position.y)
-  controls.target.copy(group.position)
+  const v = viewFor(group, item)
+  camera.position.copy(v.pos)
+  controls.target.copy(v.look)
   controls.update()
 }
 
