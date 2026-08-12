@@ -83,7 +83,7 @@ export async function createArtwork(config: ArtworkConfig): Promise<THREE.Group>
   )
   frame.position.z = -0.02
   frame.castShadow = true
-  frame.userData = { artwork: true, config }
+  frame.userData = { artwork: true, config, frame: true }
 
   const art = new THREE.Mesh(
     new THREE.PlaneGeometry(1.2, 1.5),
@@ -131,7 +131,7 @@ export async function mountSculpture(
   plinth.position.y = 0.36
   plinth.castShadow = true
   plinth.receiveShadow = true
-  plinth.userData = { artwork: true, config }
+  plinth.userData = { artwork: true, config, frame: true }
   group.add(plinth)
 
   try {

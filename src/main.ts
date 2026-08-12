@@ -9,6 +9,8 @@ import {
   type GalleryItem,
 } from './gallery/artwork.ts'
 import { createInfoCard } from './gallery/infocard.ts'
+import { loadTheme, createSettingsUI } from './gallery/settings.ts'
+import type { ThemeTargets } from './gallery/themes.ts'
 
 const items = sceneConfig as unknown as GalleryItem[]
 
@@ -46,8 +48,10 @@ renderer.xr.addEventListener('sessionend', () => {
 
 const { W, H, D } = GALLERY
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x4a4a55, 1.25))
-scene.add(new THREE.AmbientLight(0xffffff, 0.35))
+const hemi = new THREE.HemisphereLight(0xffffff, 0x4a4a55, 1.25)
+scene.add(hemi)
+const ambient = new THREE.AmbientLight(0xffffff, 0.35)
+scene.add(ambient)
 const sun = new THREE.DirectionalLight(0xffffff, 1.2)
 sun.position.set(5, 8, 4)
 sun.castShadow = true
@@ -59,9 +63,10 @@ fill.position.set(-5, 8, -4)
 fill.castShadow = false
 scene.add(fill)
 
+const floorMat = new THREE.MeshStandardMaterial({ color: 0x27272e, roughness: 0.9 })
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(W, D),
-  new THREE.MeshStandardMaterial({ color: 0x27272e, roughness: 0.9 }),
+  floorMat,
 )
 floor.rotation.x = -Math.PI / 2
 floor.receiveShadow = true
@@ -87,10 +92,18 @@ function addHanger(x: number, y: number, z: number) {
   scene.add(hanger)
 }
 
+const initialTheme = loadTheme()
 for (const item of items) {
   if (item.type === 'artwork') {
     void createArtwork(item).then((group) => {
       scene.add(group)
+      group.traverse((o) => {
+        if (o.userData.frame) {
+          ;((o as THREE.Mesh).material as THREE.MeshStandardMaterial).color.set(
+            initialTheme.frame,
+          )
+        }
+      })
       const top = (group.position.y ?? 1.85) + 0.9
       switch (item.wall ?? 'back') {
         case 'left':
@@ -116,6 +129,8 @@ const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
 const from = new THREE.Vector3()
 const direction = new THREE.Vector3()
+const laserLines: THREE.Line[] = []
+const laserMats: THREE.LineBasicMaterial[] = []
 
 function normalOf(hit: THREE.Intersection): THREE.Vector3 {
   const n = hit.face!.normal.clone()
@@ -160,15 +175,45 @@ function initControllers() {
         infoCard.hide()
       }
     })
+    const laserMat = new THREE.LineBasicMaterial({
+      color: 0x6ea8fe,
+      transparent: true,
+      opacity: 0.35,
+    })
     const laser = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, -0.02), new THREE.Vector3(0, 0, -3)]),
-      new THREE.LineBasicMaterial({ color: 0x6ea8fe, transparent: true, opacity: 0.35 }),
+      laserMat,
     )
+    laserLines.push(laser)
+    laserMats.push(laserMat)
     controller.add(laser)
     scene.add(controller)
   }
 }
 initControllers()
+
+const themeTargets: ThemeTargets = {
+  wallMat,
+  floorMat,
+  hangerMat,
+  hemi,
+  ambient,
+  key: sun,
+  fill,
+  lasers: laserMats,
+}
+createSettingsUI({
+  scene,
+  targets: themeTargets,
+  initialTheme,
+  onAutoRotate: (on) => {
+    controls.autoRotate = on
+    controls.autoRotateSpeed = 0.5
+  },
+  onLasers: (on) => {
+    for (const line of laserLines) line.visible = on
+  },
+})
 
 const title = document.createElement('div')
 title.id = 'title'

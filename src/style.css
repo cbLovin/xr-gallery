@@ -55,3 +55,114 @@ button.vr {
     background: #4a4a5a;
   }
 }
+
+#settings-gear {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 40;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #e7e6ea;
+  background: rgba(28, 28, 36, 0.85);
+  border: 1px solid #4a4a5a;
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: background 0.2s, transform 0.2s;
+
+  &:hover {
+    background: #4a4a5a;
+    transform: rotate(30deg);
+  }
+}
+
+#settings-panel {
+  position: fixed;
+  top: 76px;
+  left: 20px;
+  z-index: 40;
+  width: 260px;
+  padding: 16px;
+  color: #e7e6ea;
+  background: rgba(20, 20, 26, 0.92);
+  border: 1px solid #33333c;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+
+  &.hidden {
+    display: none;
+  }
+
+  .panel-title {
+    font: 600 15px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+
+  .section-label {
+    font: 500 11px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #8a8794;
+    margin-bottom: 8px;
+  }
+
+  .theme-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+
+    .theme-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 4px;
+      font: 500 11px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
+      color: #cfcdd6;
+      background: rgba(45, 45, 56, 0.7);
+      border: 1px solid #3d3d49;
+      border-radius: 8px;
+      cursor: pointer;
+
+      .swatch {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+
+      &:hover {
+        background: rgba(65, 65, 80, 0.8);
+      }
+
+      &.active {
+        border-color: #8fa8ff;
+        background: rgba(90, 110, 200, 0.25);
+      }
+    }
+  }
+
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: 500 13px/1.4 system-ui, 'Segoe UI', Roboto, sans-serif;
+    color: #cfcdd6;
+    padding: 8px 2px;
+    cursor: pointer;
+
+    input[type='checkbox'] {
+      width: 15px;
+      height: 15px;
+      accent-color: #8fa8ff;
+    }
+  }
+}
