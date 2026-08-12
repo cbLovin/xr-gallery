@@ -59,7 +59,7 @@ export function createSettingsUI(opts: {
     btn.dataset.theme = t.id
     const swatch = document.createElement('span')
     swatch.className = 'swatch'
-    swatch.style.background = t.background
+    swatch.style.background = `linear-gradient(135deg, ${t.accent} 0%, ${t.wall} 60%, ${t.background} 100%)`
     const label = document.createElement('span')
     label.textContent = t.label
     btn.append(swatch, label)
