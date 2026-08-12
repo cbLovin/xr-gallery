@@ -322,12 +322,19 @@ let tools: ToolUI
 
 function startFocus(group: THREE.Group, item: GalleryItem) {
   const n = wallNormal(item)
-  cameraGoal.copy(group.position).addScaledVector(n, 2.4).setY(1.7)
-  lookGoal.copy(group.position).setY(group.position.y + 0.4)
+  cameraGoal.copy(group.position).addScaledVector(n, 2.4).setY(group.position.y)
+  lookGoal.copy(group.position)
   focus.pos.copy(cameraGoal)
   focus.look.copy(lookGoal)
   focus.active = true
   controls.autoRotate = false
+}
+
+function jumpTo(group: THREE.Group, item: GalleryItem) {
+  const n = wallNormal(item)
+  camera.position.copy(group.position).addScaledVector(n, 2.4).setY(group.position.y)
+  controls.target.copy(group.position)
+  controls.update()
 }
 
 function startTour() {
@@ -336,6 +343,18 @@ function startTour() {
   tour.waiting = false
   tour.timer = 0
   tools.setTourActive(true)
+  while (tour.index < items.length) {
+    const item = items[tour.index]
+    tour.index++
+    const group = item.type === 'artwork' ? artworkGroups.get(item.id) : null
+    if (group) {
+      jumpTo(group, item)
+      infoCard.show(item, cardSpotFor(group, item))
+      tools.setActiveItem(item.id)
+      return
+    }
+  }
+  endTour()
 }
 
 function tourStep() {
