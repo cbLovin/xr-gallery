@@ -7,6 +7,7 @@ export interface ArtworkConfig {
   title: string
   artist: string
   description: string
+  reflection?: string
   type: 'artwork'
   colors: [number, number]
   wall?: 'back' | 'left' | 'right'
@@ -27,6 +28,7 @@ export interface SculptureConfig {
   title: string
   artist: string
   description: string
+  reflection?: string
   type: 'sculpture'
   model: string
   scale?: number

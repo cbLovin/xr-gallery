@@ -21,7 +21,7 @@ function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number)
   return lines
 }
 
-function drawCard(config: GalleryItem): THREE.CanvasTexture {
+function drawCard(config: GalleryItem, accent: string): THREE.CanvasTexture {
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
@@ -31,9 +31,11 @@ function drawCard(config: GalleryItem): THREE.CanvasTexture {
   ctx.beginPath()
   ctx.roundRect(0, 0, W, H, 48)
   ctx.fill()
-  ctx.strokeStyle = 'rgba(140, 160, 255, 0.55)'
+  ctx.strokeStyle = accent
+  ctx.globalAlpha = 0.55
   ctx.lineWidth = 6
   ctx.stroke()
+  ctx.globalAlpha = 1
 
   ctx.fillStyle = '#ffffff'
   ctx.font = '700 92px system-ui, sans-serif'
@@ -48,6 +50,17 @@ function drawCard(config: GalleryItem): THREE.CanvasTexture {
   const lines = wrapText(ctx, config.description, W - 192).slice(0, 3)
   lines.forEach((line, i) => ctx.fillText(line, 96, 372 + i * 64))
 
+  if (config.reflection) {
+    ctx.globalAlpha = 0.25
+    ctx.fillStyle = accent
+    ctx.fillRect(96, 620, 90, 4)
+    ctx.globalAlpha = 1
+    ctx.fillStyle = accent
+    ctx.font = 'italic 400 40px Georgia, serif'
+    const reflections = wrapText(ctx, `"${config.reflection}"`, W - 192).slice(0, 2)
+    reflections.forEach((line, i) => ctx.fillText(line, 96, 684 + i * 54))
+  }
+
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
   texture.generateMipmaps = true
@@ -59,6 +72,7 @@ export function createInfoCard(): {
   show: (config: GalleryItem, position: THREE.Vector3) => void
   hide: () => void
   lookAt: (target: THREE.Vector3) => void
+  setAccent: (accent: string) => void
   mesh: THREE.Mesh
 } {
   const material = new THREE.MeshBasicMaterial({
@@ -72,6 +86,7 @@ export function createInfoCard(): {
   let current: THREE.CanvasTexture | null = null
   let target = new THREE.Vector3()
   let visible = false
+  let accent = '#a5b4ff'
 
   function fade(delta: number) {
     const next = Math.min(1, Math.max(0, material.opacity + delta))
@@ -82,11 +97,14 @@ export function createInfoCard(): {
     mesh,
     show(config, position) {
       if (current) current.dispose()
-      current = drawCard(config)
+      current = drawCard(config, accent)
       material.map = current
       material.needsUpdate = true
       target.copy(position)
       visible = true
+    },
+    setAccent(next: string) {
+      accent = next
     },
     hide() {
       visible = false

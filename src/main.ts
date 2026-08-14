@@ -14,6 +14,12 @@ import { loadTheme, createSettingsUI } from './gallery/settings.ts'
 import { updateGlows } from './gallery/glow.ts'
 import { createTools, type ToolUI } from './gallery/tools.ts'
 import type { ThemeTargets } from './gallery/themes.ts'
+import { createSoundscape } from './gallery/sound.ts'
+import { createMoodModal, MOODS } from './gallery/mood.ts'
+import { createWisps } from './gallery/wisps.ts'
+
+const MOOD_KEY = 'echosphere:mood'
+const VISITED_KEY = 'echosphere:visited'
 
 const items = sceneConfig as unknown as GalleryItem[]
 
@@ -245,6 +251,11 @@ function initControllers() {
 }
 initControllers()
 
+const wisps = createWisps()
+scene.add(wisps.points)
+
+const sound = createSoundscape(false)
+
 const themeTargets: ThemeTargets = {
   wallMat,
   floorMat,
@@ -254,6 +265,8 @@ const themeTargets: ThemeTargets = {
   key: sun,
   fill,
   lasers: laserMats,
+  wisps: wisps.material,
+  cardAccent: (accent) => infoCard.setAccent(accent),
 }
 const clock = new THREE.Clock()
 const cameraGoal = new THREE.Vector3()
@@ -264,7 +277,7 @@ const homePos = new THREE.Vector3(0, 2.15, 7.99)
 const homeLook = new THREE.Vector3(0, 1.75, 0)
 let homeCaptured = false
 let autoRotateSetting = false
-createSettingsUI({
+const settings = createSettingsUI({
   scene,
   targets: themeTargets,
   initialTheme,
@@ -276,19 +289,95 @@ createSettingsUI({
   onLasers: (on) => {
     for (const line of laserLines) line.visible = on
   },
+  onSound: (on) => {
+    sound.setMuted(!on)
+  },
 })
 
 const title = document.createElement('div')
 title.id = 'title'
 title.className = 'ui'
-title.textContent = 'ECHOSPHERE'
+title.textContent = 'ECHOBLOOM GALLERY'
 document.body.appendChild(title)
+
+const moodLine = document.createElement('div')
+moodLine.id = 'mood-line'
+moodLine.className = 'ui'
+document.body.appendChild(moodLine)
 
 const hint = document.createElement('div')
 hint.id = 'hint'
 hint.className = 'ui'
 hint.textContent = 'Drag to look · scroll to zoom · click a piece · hover for glow'
 document.body.appendChild(hint)
+
+const footer = document.createElement('div')
+footer.id = 'footer'
+footer.className = 'ui'
+footer.textContent = 'An EchoBloom Initiative by IPMD — art that heals, inspires & dignifies.'
+document.body.appendChild(footer)
+
+const moodModal = createMoodModal({
+  onApply(mood) {
+    settings.setThemeId(mood.themeId)
+    localStorage.setItem(MOOD_KEY, mood.id)
+    moodLine.textContent = `“${mood.line}”`
+    moodLine.classList.add('showing')
+    moodModal.close()
+  },
+})
+
+const landing = document.createElement('div')
+landing.id = 'landing'
+landing.className = 'ui'
+const landingKicker = document.createElement('div')
+landingKicker.className = 'landing-kicker'
+landingKicker.textContent = 'AN ECHOBLOOM INITIATIVE BY IPMD'
+const landingTitle = document.createElement('div')
+landingTitle.className = 'landing-title'
+landingTitle.textContent = 'ECHOBLOOM GALLERY'
+const landingLine = document.createElement('div')
+landingLine.className = 'landing-line'
+landingLine.textContent = 'Take a breath. Let the art meet how you feel.'
+const landingSub = document.createElement('div')
+landingSub.className = 'landing-sub'
+landingSub.textContent =
+  'A healing space where emotional AI, human artists, and visitors create meaning together — a room tuned to you, in real time.'
+const landingEnter = document.createElement('button')
+landingEnter.id = 'landing-enter'
+landingEnter.textContent = 'ENTER THE GALLERY'
+const landingNote = document.createElement('div')
+landingNote.className = 'landing-note'
+landingNote.textContent = 'A gentle soundscape begins when you enter'
+landing.append(landingKicker, landingTitle, landingLine, landingSub, landingEnter, landingNote)
+document.body.appendChild(landing)
+
+function enterGallery() {
+  sound.start()
+  localStorage.setItem(VISITED_KEY, '1')
+  landing.classList.add('leaving')
+  setTimeout(() => landing.remove(), 800)
+  setTimeout(() => moodModal.open(), 400)
+}
+
+landingEnter.addEventListener('click', enterGallery)
+
+if (localStorage.getItem(VISITED_KEY)) {
+  landing.remove()
+  const saved = MOODS.find((m) => m.id === localStorage.getItem(MOOD_KEY))
+  if (saved) {
+    moodLine.textContent = `“${saved.line}”`
+    moodLine.classList.add('showing')
+  }
+} else {
+  window.addEventListener(
+    'pointerdown',
+    () => sound.start(),
+    { once: true },
+  )
+}
+
+document.title = 'EchoBloom Gallery — IPMD'
 
 function createVRButton(): HTMLButtonElement | null {
   if (!('xr' in navigator)) return null
@@ -409,9 +498,14 @@ function takePhoto() {
   a.click()
 }
 
-tools = createTools({  onPhoto: takePhoto,
+tools = createTools({
+  onPhoto: takePhoto,
   onTour: startTour,
   onStopTour: endTour,
+  onFeel: () => {
+    sound.start()
+    moodModal.open()
+  },
 })
 tools.renderList(items, null, (item) => {
   const group = item.type === 'artwork' ? artworkGroups.get(item.id) : null
@@ -456,6 +550,40 @@ tools.renderList(items, null, (item) => {
     return { x: ((v.x + 1) / 2) * window.innerWidth, y: ((1 - v.y) / 2) * window.innerHeight }
   },
   groupCount: () => artworkGroups.size,
+  landingPresent: () => !!document.getElementById('landing'),
+  moodOpen: () => moodModal.isOpen(),
+  moodLine: () => moodLine.textContent,
+  wisps: () => ({
+    count: wisps.points.geometry.attributes.position.count,
+    color: '#' + wisps.material.color.getHexString(),
+    opacity: wisps.material.opacity,
+  }),
+  themeId: () => settings.currentTheme().id,
+  soundStarted: () => sound.started(),
+  cardProbe: () => {
+    const mat = infoCard.mesh.material as THREE.MeshBasicMaterial
+    const tex = mat.map as THREE.CanvasTexture | null
+    const diag = {
+      hasMap: !!mat.map,
+      opacity: mat.opacity,
+      uuid: infoCard.mesh.uuid,
+      inScene: !!scene.getObjectById(infoCard.mesh.id),
+      size: tex?.image ? (tex.image as HTMLCanvasElement).width : 0,
+    }
+    if (!tex) return diag
+    const cv = tex.image as HTMLCanvasElement
+    const c = document.createElement('canvas')
+    c.width = cv.width
+    c.height = cv.height
+    const cx = c.getContext('2d')!
+    cx.drawImage(cv, 0, 0)
+    const d = cx.getImageData(96, 640, cv.width - 192, 200).data
+    let bright = 0
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i] + d[i + 1] + d[i + 2] > 380) bright++
+    }
+    return { ...diag, strip: [96, 640, cv.width - 192, 200], brightPixels: bright }
+  },
   probe: () => {
     const out: unknown[] = []
     scene.traverse((o) => {
@@ -500,11 +628,14 @@ window.addEventListener('resize', () => {
 
 window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && tour.active) endTour()
+  if (e.key === 'Escape' && moodModal.isOpen()) moodModal.close()
 })
 
 const viewPos = new THREE.Vector3()
 renderer.setAnimationLoop(() => {
   const delta = clock.getDelta()
+
+  wisps.update(delta)
 
   if (!homeCaptured) {
     homePos.copy(camera.position)

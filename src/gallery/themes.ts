@@ -153,6 +153,8 @@ export interface ThemeTargets {
   key: THREE.DirectionalLight
   fill: THREE.DirectionalLight
   lasers: THREE.LineBasicMaterial[]
+  wisps?: THREE.PointsMaterial | null
+  cardAccent?: (accent: string) => void
 }
 
 export function applyTheme(scene: THREE.Scene, t: GalleryTheme, targets: ThemeTargets): void {
@@ -167,6 +169,8 @@ export function applyTheme(scene: THREE.Scene, t: GalleryTheme, targets: ThemeTa
   targets.key.color.set(t.light)
   targets.fill.color.set(t.light)
   for (const laser of targets.lasers) laser.color.set(t.accent)
+  if (targets.wisps) targets.wisps.color.set(t.accent)
+  targets.cardAccent?.(t.accent)
   scene.traverse((o) => {
     if (o.userData.frame) {
       const mat = (o as THREE.Mesh).material as THREE.MeshStandardMaterial

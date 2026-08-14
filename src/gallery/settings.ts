@@ -4,6 +4,7 @@ import { THEMES, applyTheme, type GalleryTheme, type ThemeTargets } from './them
 const THEME_KEY = 'echosphere:theme'
 const AUTO_KEY = 'echosphere:auto'
 const LASER_KEY = 'echosphere:lasers'
+const SOUND_KEY = 'echosphere:sound'
 
 const GEAR_SVG = `
 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -18,6 +19,7 @@ export function loadTheme(): GalleryTheme {
 
 export interface SettingsUI {
   currentTheme: () => GalleryTheme
+  setThemeId: (id: string) => void
 }
 
 export function createSettingsUI(opts: {
@@ -26,6 +28,7 @@ export function createSettingsUI(opts: {
   initialTheme: GalleryTheme
   onAutoRotate: (on: boolean) => void
   onLasers: (on: boolean) => void
+  onSound: (on: boolean) => void
 }): SettingsUI {
   let theme = opts.initialTheme
 
@@ -43,31 +46,6 @@ export function createSettingsUI(opts: {
   title.className = 'panel-title'
   title.textContent = 'Settings'
   panel.appendChild(title)
-
-  const vibeLabel = document.createElement('div')
-  vibeLabel.className = 'section-label'
-  vibeLabel.textContent = 'Vibe'
-  panel.appendChild(vibeLabel)
-
-  const grid = document.createElement('div')
-  grid.className = 'theme-grid'
-  panel.appendChild(grid)
-
-  const themeButtons = new Map<string, HTMLButtonElement>()
-  for (const t of THEMES) {
-    const btn = document.createElement('button')
-    btn.className = 'theme-btn'
-    btn.dataset.theme = t.id
-    const swatch = document.createElement('span')
-    swatch.className = 'swatch'
-    swatch.style.background = `linear-gradient(135deg, ${t.accent} 0%, ${t.wall} 60%, ${t.background} 100%)`
-    const label = document.createElement('span')
-    label.textContent = t.label
-    btn.append(swatch, label)
-    btn.addEventListener('click', () => setTheme(t))
-    themeButtons.set(t.id, btn)
-    grid.appendChild(btn)
-  }
 
   const autoLabel = document.createElement('label')
   autoLabel.className = 'toggle'
@@ -87,15 +65,19 @@ export function createSettingsUI(opts: {
   laserLabel.append(laserInput, document.createTextNode('Show laser pointers'))
   panel.appendChild(laserLabel)
 
+  const soundLabel = document.createElement('label')
+  soundLabel.className = 'toggle'
+  const soundInput = document.createElement('input')
+  soundInput.type = 'checkbox'
+  soundInput.id = 'set-sound'
+  soundInput.checked = localStorage.getItem(SOUND_KEY) !== '0'
+  soundLabel.append(soundInput, document.createTextNode('Ambient soundscape'))
+  panel.appendChild(soundLabel)
+
   function setTheme(t: GalleryTheme) {
     theme = t
     applyTheme(opts.scene, t, opts.targets)
     localStorage.setItem(THEME_KEY, t.id)
-    for (const [id, btn] of themeButtons) btn.classList.toggle('active', id === t.id)
-  }
-
-  function markActive() {
-    for (const [id, btn] of themeButtons) btn.classList.toggle('active', id === theme.id)
   }
 
   gear.addEventListener('click', () => panel.classList.toggle('hidden'))
@@ -107,12 +89,22 @@ export function createSettingsUI(opts: {
     localStorage.setItem(LASER_KEY, laserInput.checked ? '1' : '0')
     opts.onLasers(laserInput.checked)
   })
+  soundInput.addEventListener('change', () => {
+    localStorage.setItem(SOUND_KEY, soundInput.checked ? '1' : '0')
+    opts.onSound(soundInput.checked)
+  })
 
   document.body.append(gear, panel)
   setTheme(theme)
   opts.onAutoRotate(autoInput.checked)
   opts.onLasers(laserInput.checked)
-  markActive()
+  opts.onSound(soundInput.checked)
 
-  return { currentTheme: () => theme }
+  return {
+    currentTheme: () => theme,
+    setThemeId: (id: string) => {
+      const next = THEMES.find((t) => t.id === id)
+      if (next) setTheme(next)
+    },
+  }
 }

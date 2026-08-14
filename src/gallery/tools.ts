@@ -4,6 +4,7 @@ export interface ToolUI {
   photoBtn: HTMLButtonElement
   tourBtn: HTMLButtonElement
   listBtn: HTMLButtonElement
+  feelBtn: HTMLButtonElement
   listPanel: HTMLDivElement
   setTourActive: (active: boolean) => void
   setPhotoDisabled: (disabled: boolean) => void
@@ -19,6 +20,7 @@ export function createTools(opts: {
   onPhoto: () => void
   onTour: () => void
   onStopTour: () => void
+  onFeel: () => void
 }): ToolUI {
   const row = document.createElement('div')
   row.className = 'tool-row ui'
@@ -37,6 +39,11 @@ export function createTools(opts: {
   listBtn.className = 'tool'
   listBtn.textContent = 'LIST'
   listBtn.title = 'Browse all pieces'
+
+  const feelBtn = document.createElement('button')
+  feelBtn.className = 'tool feel'
+  feelBtn.textContent = 'FEEL'
+  feelBtn.title = 'Tell us how you feel — EchoBloom will shift the gallery to match'
 
   const listPanel = document.createElement('div')
   listPanel.id = 'list-panel'
@@ -59,8 +66,9 @@ export function createTools(opts: {
     else opts.onTour()
   })
   listBtn.addEventListener('click', () => listPanel.classList.toggle('hidden'))
+  feelBtn.addEventListener('click', opts.onFeel)
 
-  row.append(photoBtn, tourBtn, listBtn)
+  row.append(photoBtn, tourBtn, listBtn, feelBtn)
   document.body.append(row, listPanel)
 
   function renderList(
@@ -101,6 +109,7 @@ export function createTools(opts: {
     photoBtn,
     tourBtn,
     listBtn,
+    feelBtn,
     listPanel,
     setTourActive(active) {
       tourBtn.classList.toggle('active', active)

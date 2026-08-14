@@ -25,7 +25,7 @@ canvas {
 
 #hint {
   position: fixed;
-  bottom: 24px;
+  bottom: 44px;
   left: 50%;
   transform: translateX(-50%);
   color: rgba(255, 255, 255, 0.5);
@@ -34,6 +34,214 @@ canvas {
   pointer-events: none;
   user-select: none;
   z-index: 10;
+}
+
+#mood-line {
+  position: fixed;
+  bottom: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.85);
+  font: italic 400 15px/1.4 Georgia, serif;
+  letter-spacing: 0.4px;
+  text-align: center;
+  max-width: 70vw;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+
+  &.showing {
+    opacity: 1;
+  }
+}
+
+#footer {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255, 255, 255, 0.32);
+  font: 500 10px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+}
+
+#landing {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  text-align: center;
+  color: #fff;
+  background: radial-gradient(ellipse at center, rgba(24, 26, 40, 0.92) 0%, rgba(8, 9, 16, 0.98) 100%);
+  backdrop-filter: blur(14px);
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+
+  &.leaving {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .landing-kicker {
+    font: 600 12px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 6px;
+    color: #8fa8ff;
+    text-transform: uppercase;
+  }
+
+  .landing-title {
+    font: 700 44px/1.1 system-ui, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    background: linear-gradient(120deg, #ffffff 0%, #a5b4ff 55%, #7c5cff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .landing-line {
+    font: italic 400 19px/1.5 Georgia, serif;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .landing-sub {
+    font: 400 14px/1.6 system-ui, 'Segoe UI', Roboto, sans-serif;
+    color: rgba(255, 255, 255, 0.55);
+    max-width: 480px;
+  }
+
+  #landing-enter {
+    margin-top: 14px;
+    padding: 15px 34px;
+    font: 600 13px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 3px;
+    color: #fff;
+    background: rgba(90, 110, 200, 0.35);
+    border: 1px solid #8fa8ff;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background 0.25s, transform 0.25s;
+
+    &:hover {
+      background: rgba(110, 135, 240, 0.55);
+      transform: translateY(-2px);
+    }
+  }
+
+  .landing-note {
+    font: 400 12px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+#mood-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 7, 12, 0.55);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+
+  &.hidden {
+    display: none;
+  }
+
+  &.showing {
+    opacity: 1;
+  }
+
+  &.fading {
+    opacity: 0;
+  }
+
+  #mood-card {
+    width: min(520px, 88vw);
+    padding: 36px 40px;
+    color: #e7e6ea;
+    background: rgba(20, 20, 28, 0.94);
+    border: 1px solid #3a3a4a;
+    border-radius: 18px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+
+    .mood-title {
+      font: 600 26px/1.2 system-ui, 'Segoe UI', Roboto, sans-serif;
+      letter-spacing: 2px;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .mood-sub {
+      font: 400 14px/1.6 system-ui, 'Segoe UI', Roboto, sans-serif;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 24px;
+    }
+
+    .mood-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+
+      .mood-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 9px;
+        padding: 16px 8px;
+        font: 600 12px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
+        letter-spacing: 1px;
+        color: #cfcdd6;
+        background: rgba(42, 42, 54, 0.8);
+        border: 1px solid #3d3d49;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.2s, border-color 0.2s, transform 0.2s;
+
+        .mood-dot {
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 0 18px rgba(255, 255, 255, 0.12);
+        }
+
+        &:hover {
+          background: rgba(65, 65, 84, 0.95);
+          border-color: #8fa8ff;
+          transform: translateY(-2px);
+        }
+      }
+    }
+  }
+}
+
+.tool-row button.tool.feel {
+  color: #cfd4ff;
+  border-color: #5a6ac0;
+
+  &:hover {
+    background: rgba(90, 110, 200, 0.4);
+  }
+
+  &.active {
+    background: rgba(110, 135, 240, 0.35);
+    border-color: #8fa8ff;
+  }
 }
 
 button.vr {
@@ -111,43 +319,6 @@ button.vr {
     text-transform: uppercase;
     color: #8a8794;
     margin-bottom: 8px;
-  }
-
-  .theme-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 16px;
-
-    .theme-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      padding: 8px 4px;
-      font: 500 11px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
-      color: #cfcdd6;
-      background: rgba(45, 45, 56, 0.7);
-      border: 1px solid #3d3d49;
-      border-radius: 8px;
-      cursor: pointer;
-
-      .swatch {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-      }
-
-      &:hover {
-        background: rgba(65, 65, 80, 0.8);
-      }
-
-      &.active {
-        border-color: #8fa8ff;
-        background: rgba(90, 110, 200, 0.25);
-      }
-    }
   }
 
   .toggle {
