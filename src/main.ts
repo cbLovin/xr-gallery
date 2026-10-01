@@ -17,16 +17,50 @@ import type { ThemeTargets } from './gallery/themes.ts'
 import { createSoundscape } from './gallery/sound.ts'
 import { createMoodModal, MOODS } from './gallery/mood.ts'
 import { createWisps } from './gallery/wisps.ts'
+import { createJourneyField } from './gallery/journey.ts'
 
 const MOOD_KEY = 'echosphere:mood'
 const VISITED_KEY = 'echosphere:visited'
 
 const items = sceneConfig as unknown as GalleryItem[]
 
-const renderer = new THREE.WebGLRenderer({
-  antialias: true,
-  preserveDrawingBuffer: true,
-})
+const FATAL = `
+  <div class="fatal">
+    <h1>WebGL could not start</h1>
+    <p>This gallery renders in real time with WebGL, and your browser refused to create a
+    3D context. On Chrome and Edge this is almost always a GPU that has been disabled.</p>
+    <ol>
+      <li>Fully quit the browser (<b>Cmd+Q</b>) and reopen it &mdash; closing the tab is not enough.</li>
+      <li>Check <b>Settings &rarr; System &rarr; Use graphics acceleration when available</b>.</li>
+      <li>If that is already on, try <b>chrome://gpu</b> and look for
+      <i>&ldquo;WebGL: Disabled&rdquoi> or <i>&ldquo;Problems Detected&rdquoi>.</li>
+      <li>Safari: <b>Safari &rarr; Settings &rarr; Advanced &rarr; Enable WebGL</b> must be ticked.</li>
+    </ol>
+  </div>`
+
+function createRenderer(): THREE.WebGLRenderer {
+  const attempts: THREE.WebGLRendererParameters[] = [
+    { antialias: true, preserveDrawingBuffer: true, powerPreference: 'high-performance' },
+    { antialias: false, preserveDrawingBuffer: true, powerPreference: 'default' },
+    { antialias: false, preserveDrawingBuffer: false, powerPreference: 'default' },
+  ]
+  for (const params of attempts) {
+    try {
+      const r = new THREE.WebGLRenderer(params)
+      if (r.getContext()) return r
+    } catch {
+      /* try the next, lighter configuration */
+    }
+  }
+  document.body.innerHTML = FATAL
+  throw new Error('WebGL unavailable')
+}
+
+const renderer = createRenderer()
+
+// Retina displays quadruple the pixel count; combined with additive particles that
+// is enough overdraw to crash a GPU process, so cap it.
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -59,22 +93,60 @@ controls.maxDistance = 30
 
 const { W, H, D } = GALLERY
 
-const hemi = new THREE.HemisphereLight(0xffffff, 0x4a4a55, 1.25)
+// Enhanced lighting setup for premium gallery feel
+const hemi = new THREE.HemisphereLight(0xffeedd, 0x223344, 0.8)
 scene.add(hemi)
-const ambient = new THREE.AmbientLight(0xffffff, 0.35)
+const ambient = new THREE.AmbientLight(0xffffff, 0.25)
 scene.add(ambient)
-const sun = new THREE.DirectionalLight(0xffffff, 1.2)
-sun.position.set(5, 8, 4)
+
+// Main gallery spotlight - warm gallery lighting
+const sun = new THREE.DirectionalLight(0xfff5e6, 1.5)
+sun.position.set(8, 12, 6)
 sun.castShadow = true
 sun.shadow.mapSize.set(2048, 2048)
-sun.shadow.camera.far = 50
+sun.shadow.camera.far = 60
+sun.shadow.camera.left = -15
+sun.shadow.camera.right = 15
+sun.shadow.camera.top = 15
+sun.shadow.camera.bottom = -15
+sun.shadow.bias = -0.0005
 scene.add(sun)
-const fill = new THREE.DirectionalLight(0xffffff, 1.2)
-fill.position.set(-5, 8, -4)
+
+// Warm fill light from opposite side
+const fill = new THREE.DirectionalLight(0xffeecc, 0.6)
+fill.position.set(-6, 10, -5)
 fill.castShadow = false
 scene.add(fill)
 
-const floorMat = new THREE.MeshStandardMaterial({ color: 0x27272e, roughness: 0.9 })
+// Accent lights for artwork highlighting
+const accent1 = new THREE.SpotLight(0xfff0e0, 0.8, 25, Math.PI / 6, 0.3, 1)
+accent1.position.set(-6, 6, -2)
+accent1.target.position.set(-4.8, 1.85, -6)
+accent1.castShadow = true
+accent1.shadow.mapSize.set(1024, 1024)
+scene.add(accent1)
+scene.add(accent1.target)
+
+const accent2 = new THREE.SpotLight(0xfff0e0, 0.8, 25, Math.PI / 6, 0.3, 1)
+accent2.position.set(6, 6, -2)
+accent2.target.position.set(4.8, 1.85, -6)
+accent2.castShadow = true
+accent2.shadow.mapSize.set(1024, 1024)
+scene.add(accent2)
+scene.add(accent2.target)
+
+// Subtle rim light from behind
+const rim = new THREE.DirectionalLight(0xffccaa, 0.3)
+rim.position.set(0, 5, 10)
+scene.add(rim)
+
+// Premium floor material - polished dark stone
+const floorMat = new THREE.MeshStandardMaterial({
+  color: 0x1a1a20,
+  roughness: 0.3,
+  metalness: 0.1,
+  envMapIntensity: 0.5,
+})
 const floor = new THREE.Mesh(
   new THREE.PlaneGeometry(W, D),
   floorMat,
@@ -84,7 +156,13 @@ floor.receiveShadow = true
 floor.name = 'floor'
 scene.add(floor)
 
-const wallMat = new THREE.MeshStandardMaterial({ color: 0x1b1b22, roughness: 0.95 })
+// Premium wall material - textured gallery walls
+const wallMat = new THREE.MeshStandardMaterial({
+  color: 0x141418,
+  roughness: 0.85,
+  metalness: 0.05,
+  envMapIntensity: 0.3,
+})
 function addWall(w: number, h: number, x: number, y: number, z: number, ry = 0) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), wallMat)
   m.position.set(x, y, z)
@@ -96,7 +174,24 @@ addWall(W, H, 0, H / 2, -D / 2)
 addWall(H, H, -W / 2, H / 2, 0, Math.PI / 2)
 addWall(H, H, W / 2, H / 2, 0, -Math.PI / 2)
 
-const hangerMat = new THREE.MeshStandardMaterial({ color: 0x3a3a44, roughness: 0.6 })
+// Baseboard trim
+const baseboardMat = new THREE.MeshStandardMaterial({
+  color: 0x0d0d10,
+  roughness: 0.5,
+  metalness: 0.2,
+})
+function addBaseboard(w: number, x: number, z: number, ry = 0) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, 0.15, 0.08), baseboardMat)
+  m.position.set(x, 0.075, z)
+  m.rotation.y = ry
+  m.receiveShadow = true
+  scene.add(m)
+}
+addBaseboard(W, 0, -D / 2 + 0.04)
+addBaseboard(H, -W / 2 + 0.04, 0, Math.PI / 2)
+addBaseboard(H, W / 2 - 0.04, 0, -Math.PI / 2)
+
+const hangerMat = new THREE.MeshStandardMaterial({ color: 0x2a2a34, roughness: 0.4, metalness: 0.3 })
 function addHanger(x: number, y: number, z: number) {
   const hanger = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.04), hangerMat)
   hanger.position.set(x, y, z)
@@ -138,6 +233,13 @@ const infoCard = createInfoCard()
 infoCard.mesh.position.set(0, 1.2, 1.5)
 scene.add(infoCard.mesh)
 
+const wisps = createWisps()
+scene.add(wisps.points)
+
+const sound = createSoundscape(false)
+
+const journey = createJourneyField(scene, items, initialTheme.accent)
+
 const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
 const from = new THREE.Vector3()
@@ -146,6 +248,66 @@ const laserLines: THREE.Line[] = []
 const laserMats: THREE.LineBasicMaterial[] = []
 const controllers: THREE.Group[] = []
 const hovered = new Set<THREE.Group>()
+
+const themeTargets: ThemeTargets = {
+  wallMat,
+  floorMat,
+  hangerMat,
+  hemi,
+  ambient,
+  key: sun,
+  fill,
+  lasers: laserMats,
+  wisps: wisps.material,
+  cardAccent: (accent) => {
+    infoCard.setAccent(accent)
+    journey.setAccent(accent)
+  },
+}
+
+const REVEAL_MS = 6500
+const reveal = { t: 0, active: false, start: 0 }
+const glide = { active: false, from: new THREE.Vector3(), to: new THREE.Vector3() }
+
+function startReveal() {
+  reveal.t = 0
+  reveal.active = true
+  reveal.start = performance.now()
+  journey.reveal(0)
+  renderer.toneMappingExposure = 0.1
+  const fog = scene.fog as THREE.Fog | null
+  if (fog) {
+    fog.near = 0.4
+    fog.far = 5
+  }
+  glide.active = true
+  glide.from.copy(camera.position)
+  glide.to.set(0, 1.8, 8)
+}
+
+function stepReveal(now: number) {
+  if (!reveal.active) return
+  const raw = Math.min((now - reveal.start) / REVEAL_MS, 1)
+  reveal.t = raw < 1 ? 1 - Math.pow(1 - raw, 3) : 1
+  journey.reveal(reveal.t)
+  renderer.toneMappingExposure = 0.1 + 1.05 * reveal.t
+  const fog = scene.fog as THREE.Fog | null
+  if (fog) {
+    fog.near = 0.4 + 13.6 * reveal.t
+    fog.far = 5 + 37 * reveal.t
+  }
+  if (glide.active) {
+    camera.position.lerpVectors(glide.from, glide.to, reveal.t)
+    controls.target.set(0, 1.75, 0)
+  }
+  if (raw >= 1) {
+    reveal.active = false
+    glide.active = false
+    camera.position.copy(glide.to)
+    controls.target.copy(homeLook)
+    controls.update()
+  }
+}
 
 function normalOf(hit: THREE.Intersection): THREE.Vector3 {
   const n = hit.face!.normal.clone()
@@ -251,23 +413,6 @@ function initControllers() {
 }
 initControllers()
 
-const wisps = createWisps()
-scene.add(wisps.points)
-
-const sound = createSoundscape(false)
-
-const themeTargets: ThemeTargets = {
-  wallMat,
-  floorMat,
-  hangerMat,
-  hemi,
-  ambient,
-  key: sun,
-  fill,
-  lasers: laserMats,
-  wisps: wisps.material,
-  cardAccent: (accent) => infoCard.setAccent(accent),
-}
 const clock = new THREE.Clock()
 const cameraGoal = new THREE.Vector3()
 const lookGoal = new THREE.Vector3()
@@ -352,15 +497,30 @@ landingNote.textContent = 'A gentle soundscape begins when you enter'
 landing.append(landingKicker, landingTitle, landingLine, landingSub, landingEnter, landingNote)
 document.body.appendChild(landing)
 
+let entered = false
+let enteredAt = 0
+
 function enterGallery() {
+  if (entered) return
+  entered = true
+  enteredAt = performance.now()
   sound.start()
   localStorage.setItem(VISITED_KEY, '1')
   landing.classList.add('leaving')
   setTimeout(() => landing.remove(), 800)
   setTimeout(() => moodModal.open(), 400)
+  setTimeout(() => startReveal(), 900)
 }
 
-landingEnter.addEventListener('click', enterGallery)
+landingEnter.addEventListener('click', () => {
+  clearTimeout(autoAdvanceTimer)
+  enterGallery()
+})
+
+// Journey-style opening: hands off after a beat if the visitor just watches
+const autoAdvanceTimer = setTimeout(() => {
+  if (document.body.contains(landing)) enterGallery()
+}, 12000)
 
 if (localStorage.getItem(VISITED_KEY)) {
   landing.remove()
@@ -369,6 +529,7 @@ if (localStorage.getItem(VISITED_KEY)) {
     moodLine.textContent = `“${saved.line}”`
     moodLine.classList.add('showing')
   }
+  setTimeout(() => startReveal(), 500)
 } else {
   window.addEventListener(
     'pointerdown',
@@ -609,6 +770,18 @@ tools.renderList(items, null, (item) => {
       .map((h) => ({ name: h.object.name || h.object.type, art: !!h.object.userData.artwork, z: h.point.z.toFixed(2) }))
     return { hits, any, cam: camera.position.toArray(), target: controls.target.toArray() }
   },
+  journey: () => ({
+    dust: {
+      count: journey.dust.geometry.attributes.position.count,
+      size: (journey.dust.material as THREE.PointsMaterial).size,
+      opacity: (journey.dust.material as THREE.PointsMaterial).opacity,
+    },
+    ribbons: journey.ribbons.length,
+    beacons: journey.beacons.length,
+    revealT: +reveal.t.toFixed(2),
+    revealActive: reveal.active,
+    exposure: +renderer.toneMappingExposure.toFixed(2),
+  }),
 }
 
 renderer.xr.addEventListener('sessionstart', () => {
@@ -623,6 +796,7 @@ renderer.xr.addEventListener('sessionend', () => {
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight
   camera.updateProjectionMatrix()
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
   renderer.setSize(window.innerWidth, window.innerHeight)
 })
 
@@ -632,10 +806,27 @@ window.addEventListener('keydown', (e) => {
 })
 
 const viewPos = new THREE.Vector3()
+let elapsed = 0
 renderer.setAnimationLoop(() => {
   const delta = clock.getDelta()
+  elapsed += delta
+
+  stepReveal(performance.now())
+  if (glide.active) {
+    renderer.render(scene, camera)
+    return
+  }
 
   wisps.update(delta)
+  journey.update(delta, elapsed)
+
+  const dwell = entered ? (performance.now() - enteredAt) / 1000 : 0
+  const soundPhase =
+    dwell < 6 ? 'silence'
+    : dwell < 26 ? 'ambient_whisper'
+    : dwell < 60 ? 'ambient_breath'
+    : 'ambient_melody'
+  sound.setPhase(soundPhase)
 
   if (!homeCaptured) {
     homePos.copy(camera.position)

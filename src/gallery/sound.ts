@@ -3,7 +3,17 @@ const CHIMES = [220, 261.63, 293.66, 329.63, 392, 440, 523.25]
 export interface Soundscape {
   start: () => void
   setMuted: (muted: boolean) => void
+  setPhase: (phase: string) => void
   started: () => boolean
+}
+
+const JOURNEY_PHASES = {
+  silence: { droneLevel: 0, chimeProb: 0, windLevel: 0 },
+  ambient_whisper: { droneLevel: 0.02, chimeProb: 0.0005, windLevel: 0.005 },
+  ambient_breath: { droneLevel: 0.04, chimeProb: 0.001, windLevel: 0.008 },
+  ambient_melody: { droneLevel: 0.06, chimeProb: 0.002, windLevel: 0.01 },
+  ambient_climax: { droneLevel: 0.08, chimeProb: 0.003, windLevel: 0.012 },
+  ambient_resonance: { droneLevel: 0.05, chimeProb: 0.0015, windLevel: 0.008 },
 }
 
 function makeImpulse(ctx: AudioContext, seconds: number, decay: number): AudioBuffer {
@@ -22,8 +32,16 @@ export function createSoundscape(initialMuted: boolean): Soundscape {
   let ctx: AudioContext | null = null
   let master: GainNode | null = null
   let muted = initialMuted
-  let nextChime = 0
   let running = false
+  let nextChime = 0
+  let phaseParams = JOURNEY_PHASES.silence
+
+  let reverbSend: GainNode | null = null
+  let droneA: OscillatorNode | null = null
+  let droneB: OscillatorNode | null = null
+  let droneGain: GainNode | null = null
+  let windGain: GainNode | null = null
+  let windFilter: BiquadFilterNode | null = null
 
   function bell() {
     if (!ctx || !running || muted) return
@@ -45,28 +63,29 @@ export function createSoundscape(initialMuted: boolean): Soundscape {
 
     const env = ctx.createGain()
     env.gain.setValueAtTime(0, now)
-    env.gain.linearRampToValueAtTime(0.05, now + 0.02)
-    env.gain.exponentialRampToValueAtTime(0.0001, now + 3.6)
+    env.gain.linearRampToValueAtTime(0.04, now + 0.02)
+    env.gain.exponentialRampToValueAtTime(0.0001, now + 4)
 
     carrier.connect(env)
     env.connect(pan)
     pan.connect(reverbSend!)
     carrier.start(now)
-    carrier.stop(now + 4)
+    carrier.stop(now + 4.5)
     modulator.start(now)
-    modulator.stop(now + 4)
+    modulator.stop(now + 4.5)
   }
 
   function scheduleLoop() {
     if (!running) return
-    nextChime += 4 + Math.random() * 6
+    const gap = 8 + Math.random() * 12
+    nextChime += gap
     setTimeout(() => {
-      bell()
+      if (Math.random() < phaseParams.chimeProb) {
+        bell()
+      }
       scheduleLoop()
     }, (nextChime - ctx!.currentTime) * 1000)
   }
-
-  let reverbSend: GainNode | null = null
 
   function start() {
     if (ctx) return
@@ -78,23 +97,23 @@ export function createSoundscape(initialMuted: boolean): Soundscape {
     master.gain.setValueAtTime(muted ? 0 : 0.5, ctx.currentTime)
     master.connect(ctx.destination)
 
-    const droneA = ctx.createOscillator()
+    droneA = ctx.createOscillator()
     droneA.type = 'sine'
-    droneA.frequency.value = 110
-    droneA.detune.value = -4
-    const droneB = ctx.createOscillator()
+    droneA.frequency.value = 55
+    droneA.detune.value = -6
+    droneB = ctx.createOscillator()
     droneB.type = 'sine'
-    droneB.frequency.value = 164.81
-    droneB.detune.value = 4
+    droneB.frequency.value = 82.41
+    droneB.detune.value = 6
     const droneFilter = ctx.createBiquadFilter()
     droneFilter.type = 'lowpass'
-    droneFilter.frequency.value = 420
-    const droneGain = ctx.createGain()
-    droneGain.gain.value = 0.09
+    droneFilter.frequency.value = 200
+    droneGain = ctx.createGain()
+    droneGain.gain.value = 0
     const droneLfo = ctx.createOscillator()
-    droneLfo.frequency.value = 0.06
+    droneLfo.frequency.value = 0.04
     const droneLfoGain = ctx.createGain()
-    droneLfoGain.gain.value = 0.03
+    droneLfoGain.gain.value = 0.02
     droneLfo.connect(droneLfoGain)
     droneLfoGain.connect(droneGain.gain)
     droneA.connect(droneFilter)
@@ -105,22 +124,22 @@ export function createSoundscape(initialMuted: boolean): Soundscape {
     droneB.start()
     droneLfo.start()
 
-    const noise = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate)
+    const noise = ctx.createBuffer(1, ctx.sampleRate * 4, ctx.sampleRate)
     const ndata = noise.getChannelData(0)
     for (let i = 0; i < ndata.length; i++) ndata[i] = Math.random() * 2 - 1
     const noiseSrc = ctx.createBufferSource()
     noiseSrc.buffer = noise
     noiseSrc.loop = true
-    const windFilter = ctx.createBiquadFilter()
+    windFilter = ctx.createBiquadFilter()
     windFilter.type = 'bandpass'
-    windFilter.frequency.value = 750
-    windFilter.Q.value = 0.4
-    const windGain = ctx.createGain()
-    windGain.gain.value = 0.015
+    windFilter.frequency.value = 400
+    windFilter.Q.value = 0.3
+    windGain = ctx.createGain()
+    windGain.gain.value = 0
     const windLfo = ctx.createOscillator()
-    windLfo.frequency.value = 0.03
+    windLfo.frequency.value = 0.02
     const windLfoGain = ctx.createGain()
-    windLfoGain.gain.value = 160
+    windLfoGain.gain.value = 100
     windLfo.connect(windLfoGain)
     windLfoGain.connect(windFilter.frequency)
     noiseSrc.connect(windFilter)
@@ -130,27 +149,48 @@ export function createSoundscape(initialMuted: boolean): Soundscape {
     windLfo.start()
 
     reverbSend = ctx.createGain()
-    reverbSend.gain.value = 1
+    reverbSend.gain.value = 0.3
     const convolver = ctx.createConvolver()
-    convolver.buffer = makeImpulse(ctx, 2.2, 3.2)
+    convolver.buffer = makeImpulse(ctx, 3, 2.5)
     const reverbGain = ctx.createGain()
-    reverbGain.gain.value = 0.55
+    reverbGain.gain.value = 0.4
     convolver.connect(reverbGain)
     reverbGain.connect(master)
     reverbSend.connect(convolver)
 
     running = true
-    nextChime = ctx.currentTime + 1.5
+    nextChime = ctx.currentTime + 2
     scheduleLoop()
+  }
+
+  function setPhase(phase: string) {
+    phaseParams = JOURNEY_PHASES[phase as keyof typeof JOURNEY_PHASES] || JOURNEY_PHASES.silence
+
+    if (!ctx || !droneGain || !windGain || !master) return
+
+    const now = ctx.currentTime
+    droneGain.gain.cancelScheduledValues(now)
+    droneGain.gain.linearRampToValueAtTime(phaseParams.droneLevel, now + 3)
+
+    windGain.gain.cancelScheduledValues(now)
+    windGain.gain.linearRampToValueAtTime(phaseParams.windLevel, now + 3)
+
+    if (windFilter) {
+      windFilter.frequency.cancelScheduledValues(now)
+      windFilter.frequency.linearRampToValueAtTime(
+        phase === 'silence' ? 200 : phase === 'ambient_climax' ? 800 : 500,
+        now + 5
+      )
+    }
   }
 
   function setMuted(next: boolean) {
     muted = next
     if (ctx && master) {
       master.gain.cancelScheduledValues(ctx.currentTime)
-      master.gain.setTargetAtTime(next ? 0 : 0.5, ctx.currentTime, 0.4)
+      master.gain.setTargetAtTime(next ? 0 : 0.5, ctx.currentTime, 0.5)
     }
   }
 
-  return { start, setMuted, started: () => !!ctx }
+  return { start, setMuted, setPhase, started: () => !!ctx }
 }
