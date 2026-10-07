@@ -42,8 +42,8 @@ export function createTools(opts: {
 
   const feelBtn = document.createElement('button')
   feelBtn.className = 'tool feel'
-  feelBtn.textContent = 'FEEL'
-  feelBtn.title = 'Tell us how you feel — EchoBloom will shift the gallery to match'
+  feelBtn.textContent = 'MOOD'
+  feelBtn.title = 'Tell us the mood — EchoBloom senses it and shifts the gallery to match'
 
   const listPanel = document.createElement('div')
   listPanel.id = 'list-panel'

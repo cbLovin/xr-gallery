@@ -1,19 +1,52 @@
 export interface Mood {
   id: string
   label: string
+  /** Robot M mood vocabulary — must stay in sync with the hardware. */
+  robotM: 'warm' | 'sad' | 'calm' | 'dynamic'
   themeId: string
+  /** Accent the gallery adopts when this mood is active. */
+  accent: string
   line: string
-  hue: [number, number]
 }
 
 export const MOODS: Mood[] = [
-  { id: 'calm', label: 'Calm', themeId: 'midnight', line: 'Still and safe, like a night that listens.', hue: [220, 260] },
-  { id: 'hopeful', label: 'Hopeful', themeId: 'aurora', line: 'Blue mornings promise more than they keep — and that is hope.', hue: [205, 230] },
-  { id: 'reflective', label: 'Reflective', themeId: 'mocha', line: 'Warm tones hold thoughts the way a cup holds hands.', hue: [25, 45] },
-  { id: 'joyful', label: 'Joyful', themeId: 'sunset', line: 'Pink light spills like laughter — welcome it.', hue: [340, 10] },
-  { id: 'inspired', label: 'Inspired', themeId: 'berry', line: 'Bold color for ideas just waking up.', hue: [320, 350] },
-  { id: 'connected', label: 'Connected', themeId: 'forest', line: 'Green grows where care is shared.', hue: [130, 165] },
+  {
+    id: 'warm',
+    label: 'Warm',
+    robotM: 'warm',
+    themeId: 'midnight',
+    accent: '#f5b942',
+    line: 'Gold settles in, the way a hand does on a shoulder.',
+  },
+  {
+    id: 'sad',
+    label: 'Sad',
+    robotM: 'sad',
+    themeId: 'arctic',
+    accent: '#5aa9e6',
+    line: 'Blue is allowed to be here. It never asks you to explain.',
+  },
+  {
+    id: 'calm',
+    label: 'Calm',
+    robotM: 'calm',
+    themeId: 'berry',
+    accent: '#9b7bd4',
+    line: 'Purple keeps the room quiet enough to hear yourself think.',
+  },
+  {
+    id: 'dynamic',
+    label: 'Dynamic',
+    robotM: 'dynamic',
+    themeId: 'ember',
+    accent: '#ff5a3c',
+    line: 'Red wakes things up — for once, on purpose.',
+  },
 ]
+
+export function moodById(id: string | null): Mood | undefined {
+  return MOODS.find((m) => m.id === id)
+}
 
 export interface MoodModal {
   open: () => void
@@ -33,11 +66,12 @@ export function createMoodModal(opts: {
 
   const title = document.createElement('div')
   title.className = 'mood-title'
-  title.textContent = 'How do you feel?'
+  title.textContent = 'How are you feeling?'
 
   const sub = document.createElement('div')
   sub.className = 'mood-sub'
-  sub.textContent = 'EchoBloom meets you where you are — choose a feeling, and the gallery will listen.'
+  sub.textContent =
+    'EchoBloom senses the mood — pick the one that fits, and the gallery will meet you there.'
 
   const grid = document.createElement('div')
   grid.className = 'mood-grid'
@@ -45,9 +79,11 @@ export function createMoodModal(opts: {
   for (const mood of MOODS) {
     const btn = document.createElement('button')
     btn.className = 'mood-btn'
+    btn.dataset.mood = mood.id
     const dot = document.createElement('span')
     dot.className = 'mood-dot'
-    dot.style.background = `linear-gradient(135deg, hsl(${mood.hue[0]} 90% 62%), hsl(${mood.hue[1]} 90% 55%))`
+    dot.style.background = `radial-gradient(circle at 34% 30%, #ffffffcc 0%, ${mood.accent} 46%, ${mood.accent}22 100%)`
+    dot.style.boxShadow = `0 0 22px ${mood.accent}66`
     const label = document.createElement('span')
     label.textContent = mood.label
     btn.append(dot, label)
@@ -55,7 +91,11 @@ export function createMoodModal(opts: {
     grid.appendChild(btn)
   }
 
-  card.append(title, sub, grid)
+  const note = document.createElement('div')
+  note.className = 'mood-note'
+  note.textContent = 'M senses the mood. It never detects emotions.'
+
+  card.append(title, sub, grid, note)
   overlay.appendChild(card)
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) hide()

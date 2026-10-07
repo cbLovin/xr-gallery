@@ -15,7 +15,7 @@ import { updateGlows } from './gallery/glow.ts'
 import { createTools, type ToolUI } from './gallery/tools.ts'
 import type { ThemeTargets } from './gallery/themes.ts'
 import { createSoundscape } from './gallery/sound.ts'
-import { createMoodModal, MOODS } from './gallery/mood.ts'
+import { createMoodModal, moodById } from './gallery/mood.ts'
 import { createWisps } from './gallery/wisps.ts'
 import { createJourneyField } from './gallery/journey.ts'
 
@@ -249,6 +249,18 @@ const laserMats: THREE.LineBasicMaterial[] = []
 const controllers: THREE.Group[] = []
 const hovered = new Set<THREE.Group>()
 
+// Robot M mood colours override whatever the theme's own accent is, so the
+// gallery always speaks the same visual language as the hardware.
+let moodAccent: string | null = null
+
+function pushAccent(themeAccent: string) {
+  const accent = moodAccent ?? themeAccent
+  infoCard.setAccent(accent)
+  journey.setAccent(accent)
+  const tint = new THREE.Color(accent)
+  for (const laser of laserMats) laser.color.copy(tint)
+}
+
 const themeTargets: ThemeTargets = {
   wallMat,
   floorMat,
@@ -259,10 +271,7 @@ const themeTargets: ThemeTargets = {
   fill,
   lasers: laserMats,
   wisps: wisps.material,
-  cardAccent: (accent) => {
-    infoCard.setAccent(accent)
-    journey.setAccent(accent)
-  },
+  cardAccent: (accent) => pushAccent(accent),
 }
 
 const REVEAL_MS = 6500
@@ -464,9 +473,12 @@ document.body.appendChild(footer)
 
 const moodModal = createMoodModal({
   onApply(mood) {
+    moodAccent = mood.accent
     settings.setThemeId(mood.themeId)
+    pushAccent(settings.currentTheme().accent)
     localStorage.setItem(MOOD_KEY, mood.id)
     moodLine.textContent = `“${mood.line}”`
+    moodLine.style.color = mood.accent
     moodLine.classList.add('showing')
     moodModal.close()
   },
@@ -487,7 +499,7 @@ landingLine.textContent = 'Take a breath. Let the art meet how you feel.'
 const landingSub = document.createElement('div')
 landingSub.className = 'landing-sub'
 landingSub.textContent =
-  'A healing space where emotional AI, human artists, and visitors create meaning together — a room tuned to you, in real time.'
+  'A healing space where human artists and visitors create meaning together — a room that senses the mood and meets you there.'
 const landingEnter = document.createElement('button')
 landingEnter.id = 'landing-enter'
 landingEnter.textContent = 'ENTER THE GALLERY'
@@ -524,9 +536,12 @@ const autoAdvanceTimer = setTimeout(() => {
 
 if (localStorage.getItem(VISITED_KEY)) {
   landing.remove()
-  const saved = MOODS.find((m) => m.id === localStorage.getItem(MOOD_KEY))
+  const saved = moodById(localStorage.getItem(MOOD_KEY))
   if (saved) {
+    moodAccent = saved.accent
+    pushAccent(settings.currentTheme().accent)
     moodLine.textContent = `“${saved.line}”`
+    moodLine.style.color = saved.accent
     moodLine.classList.add('showing')
   }
   setTimeout(() => startReveal(), 500)
@@ -778,6 +793,7 @@ tools.renderList(items, null, (item) => {
     },
     ribbons: journey.ribbons.length,
     beacons: journey.beacons.length,
+    accent: moodAccent ?? settings.currentTheme().accent,
     revealT: +reveal.t.toFixed(2),
     revealActive: reveal.active,
     exposure: +renderer.toneMappingExposure.toFixed(2),
