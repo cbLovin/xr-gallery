@@ -1,8 +1,5 @@
 # Asset Contract — XR Gallery
 
-**Owner:** Jason Fang (PM) · **Producer:** Ehtiram Shukurov
-**Status:** v1 — any change goes through a PR against this file before assets are built against it.
-
 This document is the contract between asset production and the gallery runtime. It exists so
 nothing you build has to be reworked. **Read it before starting any asset work.**
 
@@ -118,17 +115,17 @@ Before an asset is considered done:
 - [ ] Renders in a neutral grey clay pass — no baked lighting
 - [ ] Dropped into `public/assets/` and loads without console errors
 - [ ] **README entry added** under its folder: author, software, poly count, texture list, any
-      non-obvious scale decisions — this is what makes the asset survive your December 8 handover
+      non-obvious scale decisions — this is what makes the asset survive the handover
 
 ---
 
 ## 8. Why the documentation requirement
 
-My internship ends **December 8, 2026**, and this is the handoff. Anything I can't explain in a
-README in three months is something Jason will have to reverse-engineer. Assume no one else
-remembers the Blender file layout.
+Asset production has a fixed end date, and this is the handoff. Anything that can't be explained
+in a README will have to be reverse-engineered later. Assume no one remembers the source file
+layout.
 
-**Open questions for me (Jason) rather than guessing:**
+**Open questions for the project lead rather than guessing:**
 - Whether a prop needs collision or interaction
 - Whether an asset must read at distance, or only up close
 - Whether it belongs in a mood-accented area (back wall) or a neutral one
