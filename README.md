@@ -1,5 +1,7 @@
 # EchoSphere — XR Gallery
 
+**PM: Jason Fang**
+
 WebXR gallery that's viewable in any browser and fully immersive in VR headsets.
 
 ## Controls
