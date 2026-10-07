@@ -329,7 +329,7 @@ canvas {
 
     .mood-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
 
       .mood-btn {
@@ -337,7 +337,7 @@ canvas {
         flex-direction: column;
         align-items: center;
         gap: 9px;
-        padding: 16px 8px;
+        padding: 16px 6px;
         font: 600 12px/1 system-ui, 'Segoe UI', Roboto, sans-serif;
         letter-spacing: 1px;
         color: #cfcdd6;
@@ -348,11 +348,10 @@ canvas {
         transition: background 0.2s, border-color 0.2s, transform 0.2s;
 
         .mood-dot {
-          width: 34px;
-          height: 34px;
+          width: 38px;
+          height: 38px;
           border-radius: 50%;
           border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 0 18px rgba(255, 255, 255, 0.12);
         }
 
         &:hover {
@@ -361,6 +360,14 @@ canvas {
           transform: translateY(-2px);
         }
       }
+    }
+
+    .mood-note {
+      margin-top: 18px;
+      font: 400 11px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+      letter-spacing: 0.6px;
+      color: rgba(255, 255, 255, 0.32);
+      text-align: center;
     }
   }
 }
