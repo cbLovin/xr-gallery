@@ -821,26 +821,15 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && moodModal.isOpen()) moodModal.close()
 })
 
-// Dev-only performance readout: open the dev server with ?perf. The import.meta.env.DEV
-// check is replaced by `false` in production builds, so the module is never bundled.
-let perf: import('./gallery/perf.ts').PerfOverlay | null = null
-if (import.meta.env.DEV && new URLSearchParams(location.search).has('perf')) {
-  void import('./gallery/perf.ts').then((m) => {
-    perf = m.createPerfOverlay(renderer, scene, camera)
-  })
-}
-
 const viewPos = new THREE.Vector3()
 let elapsed = 0
 renderer.setAnimationLoop(() => {
-  perf?.begin()
   const delta = clock.getDelta()
   elapsed += delta
 
   stepReveal(performance.now())
   if (glide.active) {
     renderer.render(scene, camera)
-    perf?.end()
     return
   }
 
@@ -905,5 +894,4 @@ renderer.setAnimationLoop(() => {
   }
   infoCard.lookAt(viewPos)
   renderer.render(scene, camera)
-  perf?.end()
 })
